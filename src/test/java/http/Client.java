@@ -58,19 +58,19 @@ public class Client implements Runnable {
                 for(String line = reader.readLine(); line != null; ) response.append(line).append("\r\n");
                 log.info(() -> String.format("Client %d has got a response from the server:%n%s.", id, response));
             } catch (IOException e) {
-                log.warn(() -> String.format("Client %d: an IO error occurred while getting response from the server.", id));
+                log.error(() -> String.format("Client %d: an IO error occurred while getting response from the server.", id));
             }
 
             log.debug(() -> String.format("Client %d completed his work.", id));
 
         } catch (UnknownHostException e) {
-            log.warn(() -> String.format("Client %d could'n connect to the server, because its IP address couldn't be determined.", id));
+            log.error(() -> String.format("Client %d could'n connect to the server, because its IP address couldn't be determined.", id));
         } catch (IllegalArgumentException e) {
-            log.warn(() -> String.format("Client %d could'n connect to the server, because the port number is outside the valid range.", id));
+            log.error(() -> String.format("Client %d could'n connect to the server, because the port number is outside the valid range.", id));
         } catch (UnsupportedEncodingException e) {
-            log.warn(() -> String.format("Client %d connected to the server, but the socket's IO streams were not created due to the wrong encoding parameter.", id));
+            log.error(() -> String.format("Client %d connected to the server, but the socket's IO streams were not created due to the wrong encoding parameter.", id));
         } catch (IOException e) {
-            log.warn(() -> String.format("Client %d: an IO error occurred when the socket or any of its IO streams was created.", id));
+            log.error(() -> String.format("Client %d: an IO error occurred when the socket or any of its IO streams was created.", id));
         }
 
         log.debug(() -> String.format("Client %d successfully disconnected from the server.", id));
