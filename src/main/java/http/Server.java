@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class Server {
 
     private static final int DEFAULT_PORT = 8080;
-    private static final int SOCKET_ACCEPT_TIMEOUT = 5 * 1000;
+    private static final int SOCKET_ACCEPT_TIMEOUT = 10 * 1000;
 
     public static void main(String... args) {
         int port = DEFAULT_PORT;
@@ -41,9 +41,9 @@ public class Server {
 
         final int finalPort = port; // port can't be used in lambda directly, because it's not effectively final
         try (val ss = new ServerSocket(port)) {
-            log.info(() -> String.format("The server successfully started listening the port number %d.", finalPort));
+            log.info(() -> String.format("The server successfully started listening to the port number %d.", finalPort));
 
-            ss.setSoTimeout(SOCKET_ACCEPT_TIMEOUT); // timeout so that the blocking accept call can't wait forever
+            ss.setSoTimeout(SOCKET_ACCEPT_TIMEOUT); // timeout so that the blocking accept call doesn't wait forever
             boolean timeout = false;
             while(!timeout)
                 try {
@@ -65,9 +65,9 @@ public class Server {
         } catch (IOException e) {
             log.error(() -> "An IO error occurred when opening the server socket.");
         } finally {
-            log.info(() -> String.format("The server has stopped listening the port number %d.", finalPort));
+            log.info(() -> String.format("The server has stopped listening to the port number %d.", finalPort));
             executor.shutdown();
-            log.debug(() -> "All submitted tasks in the executor pool were executed. The pool was shutdown.");
+            log.debug(() -> "All submitted tasks in the executor pool were executed. The pool was shut down.");
         }
     }
 }
