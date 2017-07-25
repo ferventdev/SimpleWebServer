@@ -10,6 +10,8 @@ repositories {
 }
 
 dependencies {
+    compile 'org.apache.logging.log4j:log4j-core:+'
     testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.0-M4',
                 'org.hamcrest:java-hamcrest:+'
+    compileOnly 'org.projectlombok:lombok:+'
 }
