@@ -6,12 +6,14 @@ import lombok.val;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 /**
  * Created by Aleksandr Shevkunenko on 25.07.2017.
  */
 @Log4j2
-public class Client implements Runnable {
+public class Client implements Callable<String> {
 
     private static String HTTP_CHARSET = "utf-8"; //"8859_1";
     private static final String DEFAULT_HOST = "localhost";
@@ -42,9 +44,10 @@ public class Client implements Runnable {
 
 
     @Override
-    public void run() {
+    public String call() {
         log.debug(() -> String.format("Client %d launched.", id));
 
+        String response = null;
         try (val socket = new Socket(host, port);
              val out = socket.getOutputStream();
              val writer = new PrintWriter(new OutputStreamWriter(out, HTTP_CHARSET), false);
@@ -53,16 +56,16 @@ public class Client implements Runnable {
 
             log.debug(() -> String.format("Client %d successfully connected to the server.", id));
 
-            try {
-                val response = new StringBuilder();
-                for(String line = null; (line = reader.readLine()) != null; ) {
-//                while (reader.ready() && !Thread.currentThread().isInterrupted()) {
-                    response.append("\t").append(line).append("\r\n");
-                }
-                log.info(() -> String.format("Client %d has got a response from the server:%n%s", id, response.toString()));
-            } catch (IOException e) {
-                log.error(() -> String.format("Client %d: an IO error occurred while getting response from the server.", id));
-            }
+//            try {
+                response = reader.lines().collect(Collectors.joining("\r\n"));//new StringBuilder();
+//                for(String line = null; (line = reader.readLine()) != null; ) {
+//                    response.append("\t").append(line).append("\r\n");
+//                }
+            String finalResponse = response;
+            log.info(() -> String.format("Client %d has got a response from the server:%n%s", id, finalResponse));
+//            } catch (IOException e) {
+//                log.error(() -> String.format("Client %d: an IO error occurred while getting response from the server.", id));
+//            }
 
             log.debug(() -> String.format("Client %d completed his work.", id));
 
@@ -78,5 +81,6 @@ public class Client implements Runnable {
         } finally {
             log.debug(() -> String.format("Client %d disconnected from the server.", id));
         }
+        return response;
     }
 }

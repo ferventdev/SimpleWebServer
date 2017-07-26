@@ -7,7 +7,7 @@ import java.net.Socket;
  */
 public class GreetingServer extends ConnectionProcessor {
 
-    private static final String GREET =
+    static final String GREET =
             "<html><head><meta charset=\"utf-8\"/></head><body><h1>Greetings! Приветствия!</h1></body></html>";
 
     public GreetingServer(Socket clientSocket) {

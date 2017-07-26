@@ -1,15 +1,20 @@
 package http;
 
+import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.junit.jupiter.api.*;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.concurrent.*;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 
 /**
  * Created by Aleksandr Shevkunenko on 26.07.2017.
  */
+@Log4j2
 class GreetingServerTest {
     public static final int PORT = 1234;
 
@@ -28,26 +33,22 @@ class GreetingServerTest {
         clientsPool.shutdown();
         clientsPool.awaitTermination(3000, TimeUnit.MILLISECONDS);
         serverThread.interrupt();
-        serverThread.join();
+//        serverThread.join();
     }
 
     @Test
-    void justServerTest() throws InterruptedException {
+    void justServerTest() throws InterruptedException, UnknownHostException {
         TimeUnit.SECONDS.sleep(3);
+        log.info(InetAddress.getLocalHost().toString());
+        log.info(InetAddress.getLocalHost().getCanonicalHostName());
+        log.info(InetAddress.getLocalHost().getHostAddress());
+        log.info(InetAddress.getLocalHost().getHostName());
     }
 
     @Test
-    void exchangeTest() throws InterruptedException {
+    void exchangeTest() throws InterruptedException, ExecutionException {
         Request request = Request.from(Request.HttpMethod.GET);
-//        Thread clientThread = new Thread(new Client("localhost", PORT, request), "client-1");
-//        clientThread.start();
-//        TimeUnit.SECONDS.sleep(4);
-//        clientThread.interrupt();
-//        clientThread.join();
-        val clientJob = clientsPool.submit(new Client("localhost", PORT, request));
-//        clientsPool.execute(new Client("localhost", PORT, request));
-//        while (!clientJob.isDone()) {
-//            TimeUnit.SECONDS.sleep(1);
-//        }
+        Future<String> clientJob = clientsPool.submit(new Client("localhost", PORT, request));
+        assertThat(clientJob.get(), is(String.format(ConnectionProcessor.RESPONSE_HEADER, GreetingServer.GREET.length(), GreetingServer.GREET)));
     }
 }
