@@ -21,8 +21,8 @@ public class GreetingServer extends ConnectionProcessor {
 
     @Override
     protected void send(Response response) {
-        super.send(response);
-        writer.print(GREET);
+//        super.send(response);
+        writer.print(String.format(RESPONSE_HEADER, GREET.length(), GREET));
         writer.flush();
     }
 }

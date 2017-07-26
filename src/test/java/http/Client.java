@@ -13,7 +13,7 @@ import java.net.UnknownHostException;
 @Log4j2
 public class Client implements Runnable {
 
-    private static String HTTP_CHARSET = "8859_1";
+    private static String HTTP_CHARSET = "utf-8"; //"8859_1";
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 8080;
     private static int count = 1;
@@ -55,12 +55,11 @@ public class Client implements Runnable {
 
             try {
                 val response = new StringBuilder();
-//                for(String line = reader.readLine(); line != null; )
-                while (reader.ready() && !Thread.currentThread().isInterrupted()) {
-                    val line = reader.readLine();
+                for(String line = null; (line = reader.readLine()) != null; ) {
+//                while (reader.ready() && !Thread.currentThread().isInterrupted()) {
                     response.append("\t").append(line).append("\r\n");
                 }
-                log.info(() -> String.format("Client %d has got a response from the server:%n%s.", id, response.toString()));
+                log.info(() -> String.format("Client %d has got a response from the server:%n%s", id, response.toString()));
             } catch (IOException e) {
                 log.error(() -> String.format("Client %d: an IO error occurred while getting response from the server.", id));
             }

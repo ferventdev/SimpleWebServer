@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class Server {
 
     private static final int DEFAULT_PORT = 8080;
-    private static final int SOCKET_ACCEPT_TIMEOUT = 0 * 2 * 1000; // 5 minutes
+    private static final int SOCKET_ACCEPT_TIMEOUT = 1 * 2 * 1000; // 5 minutes
 
     public static void main(String... args) {
         int port = DEFAULT_PORT;
@@ -35,38 +35,43 @@ public class Server {
             log.warn(() -> String.format("The supplied port number (%s) is not a parsable integer. The default value (%d) will be applied.", args[0], DEFAULT_PORT));
         }
 
-        int maxThreads = Runtime.getRuntime().availableProcessors() * 10;
+        int maxThreads = Runtime.getRuntime().availableProcessors() * 1;
         ExecutorService executor = Executors.newFixedThreadPool(maxThreads);
         log.debug(() -> String.format("The executor pool for maximum of %d threads has been created.", maxThreads));
 
         final int finalPort = port; // port can't be used in lambda directly, because it's not effectively final
+        boolean interrupted = Thread.currentThread().isInterrupted();
+
         try (val ss = new ServerSocket(port)) {
             log.info(() -> String.format("The server successfully started listening to the port number %d.", finalPort));
 
             ss.setSoTimeout(SOCKET_ACCEPT_TIMEOUT); // timeout so that the blocking accept call doesn't wait forever
             boolean timeout = false;
-            while(!timeout)// && !Thread.currentThread().isInterrupted())
+            while(!timeout && !interrupted)
                 try {
 
                     ConnectionProcessor cp = new GreetingServer(ss.accept());
                     executor.execute(cp);
 
                 } catch (SocketTimeoutException e) {
-                    timeout = true;
+                    timeout = false; //true;
                     log.info(() -> "The client's connection timeout is over.");
                 } catch (RejectedExecutionException e) {
                     log.warn(() -> "The task cannot be accepted for execution.");
                     TimeUnit.SECONDS.sleep(2);
                 } catch (IOException e) {
                     log.error(() -> "An IO error occurred while waiting for a connection.");
+                } finally {
+                    interrupted = Thread.currentThread().isInterrupted();
                 }
 
         } catch (InterruptedException e) {
-            log.debug(() -> "The server thread was interrupted.");
+            interrupted = true;
         } catch (IOException e) {
             log.error(() -> "An IO error occurred when opening the server socket.");
-            log.error(e.getMessage());
+//            log.error(e.getMessage());
         } finally {
+            if (interrupted) log.debug(() -> "The server thread was interrupted.");
             log.info(() -> String.format("The server has stopped listening to the port number %d.", finalPort));
             executor.shutdown();
             log.debug(() -> "All submitted tasks in the executor pool were executed. The pool was shut down.");

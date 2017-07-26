@@ -14,20 +14,21 @@ class GreetingServerTest {
     public static final int PORT = 1234;
 
     static Thread serverThread;
-//    static ExecutorService clientsPool;
+    static ExecutorService clientsPool;
 
     @BeforeAll
     static void setUp() {
         serverThread = new Thread(() -> Server.main(Integer.toString(PORT)), "server");
-//        clientsPool = Executors.newSingleThreadExecutor();
+        clientsPool = Executors.newSingleThreadExecutor();
         serverThread.start();
     }
 
     @AfterAll
     static void tearDown() throws InterruptedException {
-//        clientsPool.shutdown();
+        clientsPool.shutdown();
+        clientsPool.awaitTermination(3000, TimeUnit.MILLISECONDS);
         serverThread.interrupt();
-//        serverThread.join();
+        serverThread.join();
     }
 
     @Test
@@ -38,12 +39,12 @@ class GreetingServerTest {
     @Test
     void exchangeTest() throws InterruptedException {
         Request request = Request.from(Request.HttpMethod.GET);
-        Thread clientThread = new Thread(new Client("localhost", PORT, request), "client-1");
-        clientThread.start();
-        TimeUnit.SECONDS.sleep(4);
-        clientThread.interrupt();
-        clientThread.join();
-//        val clientJob = clientsPool.submit(new Client("localhost", PORT, request));
+//        Thread clientThread = new Thread(new Client("localhost", PORT, request), "client-1");
+//        clientThread.start();
+//        TimeUnit.SECONDS.sleep(4);
+//        clientThread.interrupt();
+//        clientThread.join();
+        val clientJob = clientsPool.submit(new Client("localhost", PORT, request));
 //        clientsPool.execute(new Client("localhost", PORT, request));
 //        while (!clientJob.isDone()) {
 //            TimeUnit.SECONDS.sleep(1);

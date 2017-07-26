@@ -13,12 +13,13 @@ import java.net.Socket;
 public abstract class ConnectionProcessor implements Runnable {
 
     public static final String RESPONSE_HEADER =
-            "HTTP/1.1 200 OK\r\n" +
+                    "HTTP/1.1 200 OK\r\n" +
                     "Content-Type: text/html\r\n" +
+//                    "Content-Language: en, ru\r\n" +
                     "Content-Length: %d\r\n" +
-                    "Connection: close\r\n\r\n";
+                    "Connection: close\r\n\r\n%s";
 
-    private static String HTTP_CHARSET = "8859_1";
+    private static String HTTP_CHARSET = "utf-8"; //"8859_1";
     private static int count = 1;
 
     private final Socket clientSocket;
