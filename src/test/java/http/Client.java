@@ -55,8 +55,8 @@ public class Client implements Runnable {
 
             try {
                 val response = new StringBuilder();
-                for(String line = reader.readLine(); line != null; ) response.append(line).append("\r\n");
-                log.info(() -> String.format("Client %d has got a response from the server:%n%s.", id, response));
+                for(String line = reader.readLine(); line != null; ) response.append("\t").append(line).append("\r\n");
+                log.info(() -> String.format("Client %d has got a response from the server:%n%s.", id, response.toString()));
             } catch (IOException e) {
                 log.error(() -> String.format("Client %d: an IO error occurred while getting response from the server.", id));
             }

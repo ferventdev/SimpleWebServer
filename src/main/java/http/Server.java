@@ -45,7 +45,7 @@ public class Server {
 
             ss.setSoTimeout(SOCKET_ACCEPT_TIMEOUT); // timeout so that the blocking accept call doesn't wait forever
             boolean timeout = false;
-            while(!timeout)
+            while(!timeout && !Thread.currentThread().isInterrupted())
                 try {
 
                     ConnectionProcessor cp = new GreetingServer(ss.accept());
