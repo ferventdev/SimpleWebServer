@@ -18,10 +18,10 @@ public class Client implements Runnable {
     private static final int DEFAULT_PORT = 8080;
     private static int count = 1;
 
-    private String host;
-    private int port;
-    private int id;
-    private Request request;
+    private final String host;
+    private final int port;
+    private final int id;
+    private final Request request;
 
 
     public Client(String host, int port, Request request) {
@@ -47,7 +47,7 @@ public class Client implements Runnable {
 
         try (val socket = new Socket(host, port);
              val out = socket.getOutputStream();
-             val writer = new PrintWriter(new OutputStreamWriter(out, HTTP_CHARSET), true);
+             val writer = new PrintWriter(new OutputStreamWriter(out, HTTP_CHARSET), false);
              val in = socket.getInputStream();
              val reader = new BufferedReader(new InputStreamReader(in, HTTP_CHARSET))) {
 
@@ -71,8 +71,8 @@ public class Client implements Runnable {
             log.error(() -> String.format("Client %d connected to the server, but the socket's IO streams were not created due to the wrong encoding parameter.", id));
         } catch (IOException e) {
             log.error(() -> String.format("Client %d: an IO error occurred when the socket or any of its IO streams was created.", id));
+        } finally {
+            log.debug(() -> String.format("Client %d disconnected from the server.", id));
         }
-
-        log.debug(() -> String.format("Client %d successfully disconnected from the server.", id));
     }
 }

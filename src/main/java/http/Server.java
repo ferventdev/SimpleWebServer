@@ -48,7 +48,8 @@ public class Server {
             while(!timeout)
                 try {
 
-                    executor.execute(new ConnectionProcessor(ss.accept()));
+                    ConnectionProcessor cp = new GreetingServer(ss.accept());
+                    executor.execute(cp);
 
                 } catch (SocketTimeoutException e) {
                     timeout = true;

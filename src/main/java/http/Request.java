@@ -7,5 +7,14 @@ public interface Request {
 
     enum HttpMethod { GET, HEAD }
 
+    HttpMethod getMethod();
 
+    static Request from(HttpMethod method) {
+        return new Request() {
+            @Override
+            public HttpMethod getMethod() {
+                return method;
+            }
+        };
+    }
 }
