@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class Server {
 
     private static final int DEFAULT_PORT = 8080;
-    private static final int SOCKET_ACCEPT_TIMEOUT = 10 * 1000;
+    private static final int SOCKET_ACCEPT_TIMEOUT = 0 * 2 * 1000; // 5 minutes
 
     public static void main(String... args) {
         int port = DEFAULT_PORT;
@@ -45,7 +45,7 @@ public class Server {
 
             ss.setSoTimeout(SOCKET_ACCEPT_TIMEOUT); // timeout so that the blocking accept call doesn't wait forever
             boolean timeout = false;
-            while(!timeout && !Thread.currentThread().isInterrupted())
+            while(!timeout)// && !Thread.currentThread().isInterrupted())
                 try {
 
                     ConnectionProcessor cp = new GreetingServer(ss.accept());
@@ -65,6 +65,7 @@ public class Server {
             log.debug(() -> "The server thread was interrupted.");
         } catch (IOException e) {
             log.error(() -> "An IO error occurred when opening the server socket.");
+            log.error(e.getMessage());
         } finally {
             log.info(() -> String.format("The server has stopped listening to the port number %d.", finalPort));
             executor.shutdown();

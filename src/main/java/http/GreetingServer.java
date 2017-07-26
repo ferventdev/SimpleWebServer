@@ -6,6 +6,10 @@ import java.net.Socket;
  * Created by Aleksandr Shevkunenko on 26.07.2017.
  */
 public class GreetingServer extends ConnectionProcessor {
+
+    private static final String GREET =
+            "<html><head><meta charset=\"utf-8\"/></head><body><h1>Greetings! Приветствия!</h1></body></html>";
+
     public GreetingServer(Socket clientSocket) {
         super(clientSocket);
     }
@@ -17,6 +21,8 @@ public class GreetingServer extends ConnectionProcessor {
 
     @Override
     protected void send(Response response) {
-        writer.print("Greetings from the server!\nПриветствия от сервера!");
+        super.send(response);
+        writer.print(GREET);
+        writer.flush();
     }
 }

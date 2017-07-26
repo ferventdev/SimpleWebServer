@@ -12,6 +12,12 @@ import java.net.Socket;
 @Log4j2
 public abstract class ConnectionProcessor implements Runnable {
 
+    public static final String RESPONSE_HEADER =
+            "HTTP/1.1 200 OK\r\n" +
+                    "Content-Type: text/html\r\n" +
+                    "Content-Length: %d\r\n" +
+                    "Connection: close\r\n\r\n";
+
     private static String HTTP_CHARSET = "8859_1";
     private static int count = 1;
 
@@ -51,7 +57,9 @@ public abstract class ConnectionProcessor implements Runnable {
 
     protected abstract Response getResponse(Request request);
 
-    protected abstract void send(Response response);
+    protected void send(Response response) {
+        writer.print(RESPONSE_HEADER);
+    }
 
     private Request getRequest() {
         return Request.from(Request.HttpMethod.GET);

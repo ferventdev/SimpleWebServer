@@ -55,7 +55,11 @@ public class Client implements Runnable {
 
             try {
                 val response = new StringBuilder();
-                for(String line = reader.readLine(); line != null; ) response.append("\t").append(line).append("\r\n");
+//                for(String line = reader.readLine(); line != null; )
+                while (reader.ready() && !Thread.currentThread().isInterrupted()) {
+                    val line = reader.readLine();
+                    response.append("\t").append(line).append("\r\n");
+                }
                 log.info(() -> String.format("Client %d has got a response from the server:%n%s.", id, response.toString()));
             } catch (IOException e) {
                 log.error(() -> String.format("Client %d: an IO error occurred while getting response from the server.", id));
@@ -71,6 +75,7 @@ public class Client implements Runnable {
             log.error(() -> String.format("Client %d connected to the server, but the socket's IO streams were not created due to the wrong encoding parameter.", id));
         } catch (IOException e) {
             log.error(() -> String.format("Client %d: an IO error occurred when the socket or any of its IO streams was created.", id));
+            log.error(e.getMessage());
         } finally {
             log.debug(() -> String.format("Client %d disconnected from the server.", id));
         }
