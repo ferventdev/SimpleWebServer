@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class Server {
 
     private static final int DEFAULT_PORT = 8080;
-    private static final int SOCKET_ACCEPT_TIMEOUT = 1 * 60 * 1000; // 5 minutes
+    private static final int SOCKET_ACCEPT_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
     public static void main(String... args) {
         int port = DEFAULT_PORT;
@@ -35,7 +35,7 @@ public class Server {
             log.warn(() -> String.format("The supplied port number (%s) is not a parsable integer. The default value (%d) will be applied.", args[0], DEFAULT_PORT));
         }
 
-        int maxThreads = Runtime.getRuntime().availableProcessors() * 1;
+        int maxThreads = Runtime.getRuntime().availableProcessors() * 10;
         ExecutorService executor = Executors.newFixedThreadPool(maxThreads);
         log.debug(() -> String.format("The executor pool for maximum of %d threads has been created.", maxThreads));
 

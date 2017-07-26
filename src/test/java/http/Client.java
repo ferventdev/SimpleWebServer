@@ -56,13 +56,11 @@ public class Client implements Callable<String> {
 
             log.debug(() -> String.format("Client %d successfully connected to the server.", id));
 
-//            try {
-                response = reader.lines().collect(Collectors.joining("\r\n"));//new StringBuilder();
-//                for(String line = null; (line = reader.readLine()) != null; ) {
-//                    response.append("\t").append(line).append("\r\n");
-//                }
+            response = reader.lines().collect(Collectors.joining("\r\n"));//new StringBuilder();
+
             String finalResponse = response;
             log.info(() -> String.format("Client %d has got a response from the server:%n%s", id, finalResponse));
+
 //            } catch (IOException e) {
 //                log.error(() -> String.format("Client %d: an IO error occurred while getting response from the server.", id));
 //            }
