@@ -51,22 +51,24 @@ public class Client implements Callable<String> {
         String response = null;
         try (val socket = new Socket(host, port);
              val out = socket.getOutputStream();
-             val writer = new PrintWriter(new OutputStreamWriter(out, HTTP_CHARSET), false);
+             val writer = new PrintWriter(new OutputStreamWriter(out, HTTP_CHARSET), true);
              val in = socket.getInputStream();
              val reader = new BufferedReader(new InputStreamReader(in, HTTP_CHARSET))) {
 
-            log.debug(() -> String.format("Client %d successfully connected to the server.", id));
+            log.info(() -> String.format("Client %d successfully connected to the server.", id));
 
             writer.print(request.toString());
+            writer.flush();
+            log.debug(() -> String.format("Client %d has sent a request to the server and now is waiting for a response.", id));
 
-            try {
-                TimeUnit.MILLISECONDS.sleep(500);
-            } catch (InterruptedException e) { /* ignore this exception */ }
+//            try {
+//                TimeUnit.MILLISECONDS.sleep(500);
+//            } catch (InterruptedException e) { /* ignore this exception */ }
 
             response = reader.lines().collect(Collectors.joining("\r\n"));
 
             String finalResponse = response;
-            log.info(() -> String.format("Client %d has got a response build the server:%n%s", id, finalResponse));
+            log.info(() -> String.format("Client %d has got a response from the server:%n%n%s%n", id, finalResponse));
 
 //            } catch (IOException e) {
 //                log.error(() -> String.format("Client %d: an IO error occurred while getting response build the server.", id));
@@ -84,7 +86,7 @@ public class Client implements Callable<String> {
             log.error(() -> String.format("Client %d: an IO error occurred when the socket or any of its IO streams was created.", id));
             log.error(e.getMessage());
         } finally {
-            log.debug(() -> String.format("Client %d disconnected build the server.", id));
+            log.info(() -> String.format("Client %d disconnected from the server.", id));
         }
         return response;
     }

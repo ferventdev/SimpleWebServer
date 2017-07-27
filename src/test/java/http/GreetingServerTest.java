@@ -26,7 +26,7 @@ class GreetingServerTest {
 
     static Thread serverThread;
     static ExecutorService clientsPool;
-    static int numberOfClients = 5;
+    static int numberOfClients = 2;
 
     static private String simpleRequest = String.format("GET / HTTP/1.1\r\n" +
                     "Host: %s:%d\r\n" +
@@ -59,8 +59,6 @@ class GreetingServerTest {
     @Test
     void justServerTest() throws InterruptedException, UnknownHostException {
         TimeUnit.SECONDS.sleep(3);
-//        Request request = ConnectionProcessor.getRequest(new BufferedReader(new StringReader(simpleRequest)), -1);
-//        System.out.print(request);
     }
 
     @Test

@@ -32,19 +32,19 @@ public abstract class ConnectionProcessor implements Runnable {
     private final Socket clientSocket;
 //    protected BufferedReader reader;
     protected PrintWriter writer;
-    private final int cpId;
+    protected final int cpId;
 
     public ConnectionProcessor(Socket clientSocket) {
         this.clientSocket = clientSocket;
         this.cpId = count++;
-        log.debug(() -> String.format("Client request has been received and connection %d has been created.", cpId));
+        log.debug(() -> String.format("Client connection request has been received and connection %d has been created.", cpId));
     }
 
     @Override
     public void run() {
         try (val reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), HTTP_CHARSET)) ) {
 
-            writer = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(), HTTP_CHARSET), false);
+            writer = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(), HTTP_CHARSET), true);
 
             log.debug(() -> String.format("Connection %d: the server successfully connected to the client (both IO streams created).", cpId));
 
@@ -69,14 +69,17 @@ public abstract class ConnectionProcessor implements Runnable {
 
     protected abstract Response getResponse(Request request);
 
-    protected void send(Response response) {
-        writer.print(RESPONSE_HEADER);
-    }
+    protected abstract void send(Response response);
 
     // This method is made static for the convenience of tests
     static Request getRequest(BufferedReader reader, int id) {
         try {
+            log.trace(() -> String.format("Connection %d: the client request parsing started.", id));
+
             String line = reader.readLine().trim();
+
+            log.trace(() -> String.format("Connection %d: the first line of the client request has been read.", id));
+
             if (line == null) {
                 log.debug(() -> String.format("Connection %d: the client request is empty.", id));
                 return null;
@@ -98,6 +101,7 @@ public abstract class ConnectionProcessor implements Runnable {
             String httpVersion = terms[2];
 
             val headers = readHeaders(reader, id);
+            log.trace(() -> String.format("Connection %d: all headers of the client request has been read.", id));
             if (headers.isEmpty()) {
                 log.debug(() -> String.format("Connection %d: the client request contains no headers.", id));
                 return null;
@@ -128,6 +132,7 @@ public abstract class ConnectionProcessor implements Runnable {
             val body = new StringBuilder();
             while (reader.ready() && (line = reader.readLine()) != null) body.append(line);
 
+            log.debug(() -> String.format("Connection %d: the client request has been successfully parsed.", id));
             return Request.build(method, url.getPath(), httpVersion, params, url.getHost(), url.getPort(), headers, body.toString());
 
         } catch (IllegalArgumentException e) {
@@ -144,17 +149,19 @@ public abstract class ConnectionProcessor implements Runnable {
         for (String param : query.split("&")) {
             String[] pair = param.split("=", 2);
             if (pair.length > 1) params.put(pair[0], pair[1]);
-            else log.debug(() -> String.format("Connection %d: parameter '%s' has no value in the client request path query.", id, pair[0]));
+            else log.trace(() -> String.format("Connection %d: parameter '%s' has no value in the client request path query.", id, pair[0]));
         }
         return params;
     }
 
     private static Map<String, String> readHeaders(BufferedReader reader, int id) throws IOException {
         Map<String, String> headers = new LinkedHashMap<>();
-        for (String s = null; (s = reader.readLine()) != null && !s.trim().isEmpty(); ) {
+        for (String s = null; reader.ready() && (s = reader.readLine()) != null && !s.trim().isEmpty(); ) {
             String[] header = s.split("\\s*:\\s*", 2);
-            if (header.length > 1) headers.put(header[0], header[1]);
-            else log.debug(() -> String.format("Connection %d: header '%s' has no value in the client request.", id, header[0]));
+            if (header.length > 1) {
+                headers.put(header[0], header[1]);
+                log.trace(() -> String.format("Connection %d: the header '%s' with value '%s' has been read.", id, header[0], header[1]));
+            } else log.debug(() -> String.format("Connection %d: header '%s' has no value in the client request.", id, header[0]));
         }
         return headers;
     }
