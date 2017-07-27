@@ -22,7 +22,7 @@ public class GreetingServer extends ConnectionProcessor {
 
     @Override
     protected void send(Response response) {
-        if (response == null) return;
+//        if (response == null) return;
 //        super.send(response);
         writer.print(String.format(RESPONSE_HEADER, GREET.length(), GREET));
         writer.flush();

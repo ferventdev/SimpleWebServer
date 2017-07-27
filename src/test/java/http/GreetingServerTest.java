@@ -59,6 +59,8 @@ class GreetingServerTest {
     @Test
     void justServerTest() throws InterruptedException, UnknownHostException {
         TimeUnit.SECONDS.sleep(3);
+//        Request request = ConnectionProcessor.getRequest(new BufferedReader(new StringReader(simpleRequest)), -1);
+//        System.out.print(request);
     }
 
     @Test

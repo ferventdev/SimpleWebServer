@@ -7,7 +7,9 @@ import lombok.val;
 import java.io.*;
 import java.net.Socket;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -120,7 +122,8 @@ public abstract class ConnectionProcessor implements Runnable {
 
             URL url = new URL("http", hostAndPort[0], port, path);
 
-            val params = getParameters(url.getQuery(), id);
+            val query = url.getQuery();
+            Map<String, String> params = (query == null) ? Collections.emptyMap() : getParameters(url.getQuery(), id);
 
             val body = new StringBuilder();
             while (reader.ready() && (line = reader.readLine()) != null) body.append(line);
@@ -137,7 +140,7 @@ public abstract class ConnectionProcessor implements Runnable {
     }
 
     private static Map<String, String> getParameters(String query, int id) {
-        Map<String, String> params = new HashMap<>();
+        Map<String, String> params = new LinkedHashMap<>();
         for (String param : query.split("&")) {
             String[] pair = param.split("=", 2);
             if (pair.length > 1) params.put(pair[0], pair[1]);
@@ -147,7 +150,7 @@ public abstract class ConnectionProcessor implements Runnable {
     }
 
     private static Map<String, String> readHeaders(BufferedReader reader, int id) throws IOException {
-        Map<String, String> headers = new HashMap<>();
+        Map<String, String> headers = new LinkedHashMap<>();
         for (String s = null; (s = reader.readLine()) != null && !s.trim().isEmpty(); ) {
             String[] header = s.split("\\s*:\\s*", 2);
             if (header.length > 1) headers.put(header[0], header[1]);

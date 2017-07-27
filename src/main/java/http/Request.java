@@ -28,16 +28,6 @@ public interface Request {
 
     String getBody();
 
-    default String intoString() {
-        val req = new StringBuilder();
-        req.append(getMethod()).append(" ").append(getPath());
-        for (val pair : getParameters().entrySet()) req.append(pair.getKey()).append("=").append(pair.getValue());
-        req.append(" ").append(getProtocolVersion()).append("\r\n");
-        for (val pair : getHeaders().entrySet()) req.append(pair.getKey()).append(": ").append(pair.getValue()).append("\r\n");
-        if (getBody() != null && !getBody().isEmpty()) req.append("\r\n").append(getBody());
-        return req.toString();
-    }
-
     static Request build(HttpMethod method, String path, String version,
                          Map<String, String> parameters, String host, int port,
                          Map<String, String> headers, String body) {
@@ -81,6 +71,17 @@ public interface Request {
             @Override
             public String getBody() {
                 return body;
+            }
+
+            @Override
+            public String toString() {
+                val req = new StringBuilder();
+                req.append(method).append(" ").append(path);
+                for (val pair : parameters.entrySet()) req.append(pair.getKey()).append("=").append(pair.getValue());
+                req.append(" ").append(version).append("\r\n");
+                for (val pair : headers.entrySet()) req.append(pair.getKey()).append(": ").append(pair.getValue()).append("\r\n");
+                if (body != null && !body.isEmpty()) req.append("\r\n").append(body);
+                return req.toString();
             }
         };
     }

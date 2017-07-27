@@ -7,6 +7,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -56,7 +57,13 @@ public class Client implements Callable<String> {
 
             log.debug(() -> String.format("Client %d successfully connected to the server.", id));
 
-            response = reader.lines().collect(Collectors.joining("\r\n"));//new StringBuilder();
+            writer.print(request.toString());
+
+            try {
+                TimeUnit.MILLISECONDS.sleep(500);
+            } catch (InterruptedException e) { /* ignore this exception */ }
+
+            response = reader.lines().collect(Collectors.joining("\r\n"));
 
             String finalResponse = response;
             log.info(() -> String.format("Client %d has got a response build the server:%n%s", id, finalResponse));
