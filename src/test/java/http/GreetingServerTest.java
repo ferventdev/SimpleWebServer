@@ -45,14 +45,14 @@ class GreetingServerTest {
 
     @Test
     void oneClientExchangeTest() throws InterruptedException, ExecutionException {
-        Request request = Request.from(Request.HttpMethod.GET);
+        Request request = null; //Request.from(Request.HttpMethod.GET);
         Future<String> serverResponse = clientsPool.submit(new Client("localhost", PORT, request));
         assertThat(serverResponse.get(), is(String.format(ConnectionProcessor.RESPONSE_HEADER, GreetingServer.GREET.length(), GreetingServer.GREET)));
     }
 
     @Test
     void manyClientsExchangeTest() throws InterruptedException, ExecutionException {
-        Request request = Request.from(Request.HttpMethod.GET);
+        Request request = null; // Request.from(Request.HttpMethod.GET);
 
         List<Callable<String>> clientsJobs = new ArrayList<>();
         for (int i = 0; i < numberOfClients; i++) {
