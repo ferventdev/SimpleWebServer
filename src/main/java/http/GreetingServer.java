@@ -16,11 +16,13 @@ public class GreetingServer extends ConnectionProcessor {
 
     @Override
     protected Response getResponse(Request request) {
+        if (request == null) return null;
         return Response.from(Response.Status.OK);
     }
 
     @Override
     protected void send(Response response) {
+        if (response == null) return;
 //        super.send(response);
         writer.print(String.format(RESPONSE_HEADER, GREET.length(), GREET));
         writer.flush();

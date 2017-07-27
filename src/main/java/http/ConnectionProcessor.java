@@ -23,6 +23,7 @@ public abstract class ConnectionProcessor implements Runnable {
     private static int count = 1;
 
     private final Socket clientSocket;
+    protected BufferedReader reader;
     protected PrintWriter writer;
     private final int id;
 
@@ -34,10 +35,10 @@ public abstract class ConnectionProcessor implements Runnable {
 
     @Override
     public void run() {
-        try (val in = clientSocket.getInputStream();
-             val reader = new BufferedReader(new InputStreamReader(in, HTTP_CHARSET)) ) {
-
+        try {
+            reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), HTTP_CHARSET));
             writer = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(), HTTP_CHARSET), false);
+
             log.debug(() -> String.format("Connection %d: the server successfully connected to the client (both IO streams created).", id));
 
             send(getResponse(getRequest()));
@@ -52,6 +53,9 @@ public abstract class ConnectionProcessor implements Runnable {
             try {
                 if (writer != null) writer.close();
             } catch (Throwable t) { /* do nothing*/ }
+            try {
+                if (reader != null) reader.close();
+            } catch (Throwable t) { /* do nothing*/ }
             log.debug(() -> String.format("Connection %d has been closed (both IO streams closed).", id));
         }
     }
@@ -63,6 +67,16 @@ public abstract class ConnectionProcessor implements Runnable {
     }
 
     private Request getRequest() {
-        return Request.from(Request.HttpMethod.GET);
+        try {
+            String line = reader.readLine().trim();
+            if (line == null) {
+                log.debug(() -> String.format("Connection %d: the client request is empty.", id));
+                return null;
+            }
+
+        } catch (IOException e) {
+            log.error(() -> String.format("Connection %d: an IO error occurred when reading the client request.", id));
+        }
+        return null;
     }
 }
