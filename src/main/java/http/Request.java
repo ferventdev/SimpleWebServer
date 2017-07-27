@@ -1,5 +1,7 @@
 package http;
 
+import lombok.val;
+
 import java.util.Map;
 
 /**
@@ -8,7 +10,7 @@ import java.util.Map;
 public interface Request {
 
     // all HTTP methods are enumerated, but actually only GET method is supported
-    enum HttpMethod { GET, HEAD, POST, PUT, PATCH, DELETE, TRACE, CONNECT, OPTIONS }
+    static enum HttpMethod { GET, HEAD, POST, PUT, PATCH, DELETE, TRACE, CONNECT, OPTIONS }
 
     HttpMethod getMethod();
 
@@ -26,9 +28,19 @@ public interface Request {
 
     String getBody();
 
-    static Request from(HttpMethod method, String path, String version,
-                        Map<String, String> parameters, String host, int port,
-                        Map<String, String> headers, String body) {
+    default String intoString() {
+        val req = new StringBuilder();
+        req.append(getMethod()).append(" ").append(getPath());
+        for (val pair : getParameters().entrySet()) req.append(pair.getKey()).append("=").append(pair.getValue());
+        req.append(" ").append(getProtocolVersion()).append("\r\n");
+        for (val pair : getHeaders().entrySet()) req.append(pair.getKey()).append(": ").append(pair.getValue()).append("\r\n");
+        if (getBody() != null && !getBody().isEmpty()) req.append("\r\n").append(getBody());
+        return req.toString();
+    }
+
+    static Request build(HttpMethod method, String path, String version,
+                         Map<String, String> parameters, String host, int port,
+                         Map<String, String> headers, String body) {
 
         return new Request() {
             @Override

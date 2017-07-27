@@ -59,10 +59,10 @@ public class Client implements Callable<String> {
             response = reader.lines().collect(Collectors.joining("\r\n"));//new StringBuilder();
 
             String finalResponse = response;
-            log.info(() -> String.format("Client %d has got a response from the server:%n%s", id, finalResponse));
+            log.info(() -> String.format("Client %d has got a response build the server:%n%s", id, finalResponse));
 
 //            } catch (IOException e) {
-//                log.error(() -> String.format("Client %d: an IO error occurred while getting response from the server.", id));
+//                log.error(() -> String.format("Client %d: an IO error occurred while getting response build the server.", id));
 //            }
 
             log.debug(() -> String.format("Client %d completed his work.", id));
@@ -77,7 +77,7 @@ public class Client implements Callable<String> {
             log.error(() -> String.format("Client %d: an IO error occurred when the socket or any of its IO streams was created.", id));
             log.error(e.getMessage());
         } finally {
-            log.debug(() -> String.format("Client %d disconnected from the server.", id));
+            log.debug(() -> String.format("Client %d disconnected build the server.", id));
         }
         return response;
     }

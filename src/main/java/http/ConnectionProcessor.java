@@ -28,40 +28,40 @@ public abstract class ConnectionProcessor implements Runnable {
     private static int count = 1;
 
     private final Socket clientSocket;
-    protected BufferedReader reader;
+//    protected BufferedReader reader;
     protected PrintWriter writer;
-    private final int id;
+    private final int cpId;
 
     public ConnectionProcessor(Socket clientSocket) {
         this.clientSocket = clientSocket;
-        this.id = count++;
-        log.debug(() -> String.format("Client request has been received and connection %d has been created.", id));
+        this.cpId = count++;
+        log.debug(() -> String.format("Client request has been received and connection %d has been created.", cpId));
     }
 
     @Override
     public void run() {
-        try {
-            reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), HTTP_CHARSET));
+        try (val reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), HTTP_CHARSET)) ) {
+
             writer = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(), HTTP_CHARSET), false);
 
-            log.debug(() -> String.format("Connection %d: the server successfully connected to the client (both IO streams created).", id));
+            log.debug(() -> String.format("Connection %d: the server successfully connected to the client (both IO streams created).", cpId));
 
-            send(getResponse(getRequest()));
+            send(getResponse(getRequest(reader, cpId)));
 
-            log.debug(() -> String.format("Connection %d has been completely processed.", id));
+            log.debug(() -> String.format("Connection %d has been completely processed.", cpId));
 
         } catch (UnsupportedEncodingException e) {
-            log.error(() -> String.format("Connection %d: client socket IO streams were not created due to the wrong encoding parameter.", id));
+            log.error(() -> String.format("Connection %d: client socket IO streams were not created due to the wrong encoding parameter.", cpId));
         } catch (IOException e) {
-            log.error(() -> String.format("Connection %d: an IO error occurred when creating the client socket IO streams.", id));
+            log.error(() -> String.format("Connection %d: an IO error occurred when creating the client socket IO streams.", cpId));
         } finally {
             try {
                 if (writer != null) writer.close();
             } catch (Throwable t) { /* do nothing*/ }
-            try {
-                if (reader != null) reader.close();
-            } catch (Throwable t) { /* do nothing*/ }
-            log.debug(() -> String.format("Connection %d has been closed (both IO streams closed).", id));
+//            try {
+//                if (reader != null) reader.close();
+//            } catch (Throwable t) { /* do nothing*/ }
+            log.debug(() -> String.format("Connection %d has been closed (both IO streams closed).", cpId));
         }
     }
 
@@ -71,7 +71,8 @@ public abstract class ConnectionProcessor implements Runnable {
         writer.print(RESPONSE_HEADER);
     }
 
-    private Request getRequest() {
+    // This method is made static for the convenience of tests
+    static Request getRequest(BufferedReader reader, int id) {
         try {
             String line = reader.readLine().trim();
             if (line == null) {
@@ -94,7 +95,7 @@ public abstract class ConnectionProcessor implements Runnable {
             String path = terms[1];
             String httpVersion = terms[2];
 
-            val headers = readHeaders();
+            val headers = readHeaders(reader, id);
             if (headers.isEmpty()) {
                 log.debug(() -> String.format("Connection %d: the client request contains no headers.", id));
                 return null;
@@ -119,12 +120,12 @@ public abstract class ConnectionProcessor implements Runnable {
 
             URL url = new URL("http", hostAndPort[0], port, path);
 
-            val params = getParameters(url.getQuery());
+            val params = getParameters(url.getQuery(), id);
 
             val body = new StringBuilder();
             while (reader.ready() && (line = reader.readLine()) != null) body.append(line);
 
-            return Request.from(method, url.getPath(), httpVersion, params, url.getHost(), url.getPort(), headers, body.toString());
+            return Request.build(method, url.getPath(), httpVersion, params, url.getHost(), url.getPort(), headers, body.toString());
 
         } catch (IllegalArgumentException e) {
             log.error(() -> String.format("Connection %d: method in the client request doesn't exist in the HTTP specification.", id));
@@ -135,7 +136,7 @@ public abstract class ConnectionProcessor implements Runnable {
         }
     }
 
-    private Map<String, String> getParameters(String query) {
+    private static Map<String, String> getParameters(String query, int id) {
         Map<String, String> params = new HashMap<>();
         for (String param : query.split("&")) {
             String[] pair = param.split("=", 2);
@@ -145,7 +146,7 @@ public abstract class ConnectionProcessor implements Runnable {
         return params;
     }
 
-    private Map<String, String> readHeaders() throws IOException {
+    private static Map<String, String> readHeaders(BufferedReader reader, int id) throws IOException {
         Map<String, String> headers = new HashMap<>();
         for (String s = null; (s = reader.readLine()) != null && !s.trim().isEmpty(); ) {
             String[] header = s.split("\\s*:\\s*", 2);
