@@ -6,11 +6,13 @@ import lombok.val;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Aleksandr Shevkunenko on 25.07.2017.
@@ -27,6 +29,7 @@ public abstract class ConnectionProcessor implements Runnable {
 
     private static String HTTP_CHARSET = "utf-8"; //"8859_1";
     private static final int DEFAULT_HTTP_PORT = 80;
+//    private static final int SOCKET_READ_TIMEOUT = 200; // in milliseconds
     private static int count = 1;
 
     private final Socket clientSocket;
@@ -47,6 +50,9 @@ public abstract class ConnectionProcessor implements Runnable {
             writer = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(), HTTP_CHARSET), true);
 
             log.debug(() -> String.format("Connection %d: the server successfully connected to the client (both IO streams created).", cpId));
+
+//            clientSocket.setSoTimeout(SOCKET_READ_TIMEOUT);
+//            clientSocket.setR
 
             send(getResponse(getRequest(reader, cpId)));
 

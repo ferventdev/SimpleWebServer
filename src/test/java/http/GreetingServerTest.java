@@ -8,11 +8,9 @@ import java.io.BufferedReader;
 import java.io.StringReader;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.*;
 
-import static http.Request.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
@@ -26,7 +24,7 @@ class GreetingServerTest {
 
     static Thread serverThread;
     static ExecutorService clientsPool;
-    static int numberOfClients = 2;
+    static int poolSize = 10;
 
     static private String simpleRequest = String.format("GET / HTTP/1.1\r\n" +
                     "Host: %s:%d\r\n" +
@@ -44,7 +42,7 @@ class GreetingServerTest {
     @BeforeAll
     static void setUp() {
         serverThread = new Thread(() -> Server.main(Integer.toString(PORT)), "server");
-        clientsPool = Executors.newFixedThreadPool(numberOfClients); //newSingleThreadExecutor();
+        clientsPool = Executors.newFixedThreadPool(poolSize); //newSingleThreadExecutor();
         serverThread.start();
     }
 
@@ -62,19 +60,22 @@ class GreetingServerTest {
     }
 
     @Test
-    void oneClientExchangeTest() throws InterruptedException, ExecutionException {
-        Request request = ConnectionProcessor.getRequest(new BufferedReader(new StringReader(simpleRequest)), -1);
-        Future<String> serverResponse = clientsPool.submit(new Client(HOST, PORT, request));
-        assertThat(serverResponse.get(), is(String.format(ConnectionProcessor.RESPONSE_HEADER, GreetingServer.GREET.length(), GreetingServer.GREET)));
+    void oneRequestTest() throws Exception {
+        requestsFromClientsTestHelper(1);
     }
 
     @Test
-    void manyClientsExchangeTest() throws InterruptedException, ExecutionException {
-        Request request = null; // Request.build(Request.HttpMethod.GET);
+    void manyRequestsTest() throws Exception {
+        requestsFromClientsTestHelper(5);
+    }
+
+    private void requestsFromClientsTestHelper(int numOfClients) throws Exception {
+        Request request = ConnectionProcessor.getRequest(new BufferedReader(new StringReader(simpleRequest)), -1);
 
         List<Callable<String>> clientsJobs = new ArrayList<>();
-        for (int i = 0; i < numberOfClients; i++) {
-            clientsJobs.add(new Client(HOST, PORT, request));
+        for (int i = 0; i < numOfClients; i++) {
+            Client client = new Client(HOST, PORT, request);
+            clientsJobs.add(client);
         }
 
         val serverResponses = clientsPool.invokeAll(clientsJobs);

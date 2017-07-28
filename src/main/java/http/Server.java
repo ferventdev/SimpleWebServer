@@ -35,7 +35,7 @@ public class Server {
             log.warn(() -> String.format("The supplied port number (%s) is not a parsable integer. The default value (%d) will be applied.", args[0], DEFAULT_PORT));
         }
 
-        int maxThreads = Runtime.getRuntime().availableProcessors() * 1;
+        int maxThreads = Runtime.getRuntime().availableProcessors() * 5;
         ExecutorService executor = Executors.newFixedThreadPool(maxThreads);
         log.debug(() -> String.format("The executor pool for maximum of %d threads has been created.", maxThreads));
 

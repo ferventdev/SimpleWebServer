@@ -26,7 +26,6 @@ public class Client implements Callable<String> {
     private final int id;
     private final Request request;
 
-
     public Client(String host, int port, Request request) {
         this.host = host;
         this.port = port;
@@ -42,7 +41,6 @@ public class Client implements Callable<String> {
     public Client(Request request) {
         this(DEFAULT_HOST, DEFAULT_PORT, request);
     }
-
 
     @Override
     public String call() {
@@ -61,18 +59,14 @@ public class Client implements Callable<String> {
             writer.flush();
             log.debug(() -> String.format("Client %d has sent a request to the server and now is waiting for a response.", id));
 
-//            try {
-//                TimeUnit.MILLISECONDS.sleep(500);
-//            } catch (InterruptedException e) { /* ignore this exception */ }
-
             response = reader.lines().collect(Collectors.joining("\r\n"));
+//                val resp = new StringBuilder();
+//                for (String s = null; reader.ready() && (s = reader.readLine()) != null; ) {
+//                    resp.append(s).append("\r\n");
+//                }
 
-            String finalResponse = response;
+            String finalResponse = response; //resp.toString();
             log.info(() -> String.format("Client %d has got a response from the server:%n%n%s%n", id, finalResponse));
-
-//            } catch (IOException e) {
-//                log.error(() -> String.format("Client %d: an IO error occurred while getting response build the server.", id));
-//            }
 
             log.debug(() -> String.format("Client %d completed his work.", id));
 
