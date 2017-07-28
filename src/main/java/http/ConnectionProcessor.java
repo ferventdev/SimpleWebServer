@@ -51,9 +51,6 @@ public abstract class ConnectionProcessor implements Runnable {
 
             log.debug(() -> String.format("Connection %d: the server successfully connected to the client (both IO streams created).", cpId));
 
-//            clientSocket.setSoTimeout(SOCKET_READ_TIMEOUT);
-//            clientSocket.setR
-
             send(getResponse(getRequest(reader, cpId)));
 
             log.debug(() -> String.format("Connection %d has been completely processed.", cpId));
