@@ -21,10 +21,6 @@ public interface Response {
     Map<String, String> getHeaders();
     InputStream getBody();
 
-    default void send(OutputStream os) {
-
-    }
-
     static Response build(String httpVersion, String status, Map<String, String> headers, InputStream body) {
         return new Response() {
             @Override
