@@ -1,6 +1,7 @@
 package http;
 
 import http.Request.HttpMethod;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 
@@ -85,7 +86,12 @@ public abstract class ConnectionProcessor implements Runnable {
         if (r.getBody() != null) {
             try (val body = new BufferedInputStream(r.getBody())) {
                 byte[] buffer = new byte[10 * 1024]; // 10 KB
-                for (int bytesRead = -1; (bytesRead = body.read(buffer)) != -1; ) writer.write(buffer, 0, bytesRead);
+                for (int bytesRead = -1; (bytesRead = body.read(buffer)) != -1; ) {
+                    int finalBytesRead = bytesRead;
+                    log.trace(() -> String.format("Connection %d: %d bytes were read from the InputStream.", cpId, finalBytesRead));
+                    writer.write(buffer, 0, bytesRead);
+                }
+                writer.flush();
             } catch (IOException e) {
                 log.error(() -> String.format("Connection %d: an IO error occurred when sending the response from the server to the client.", cpId));
             }

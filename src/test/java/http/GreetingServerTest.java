@@ -20,7 +20,7 @@ import static org.hamcrest.core.Is.is;
 @Log4j2
 class GreetingServerTest implements ServerTest {
 
-    static private String simpleRequest = String.format("GET / HTTP/1.1\r\n" +
+    private static String simpleRequest = String.format("GET / HTTP/1.1\r\n" +
                     "Host: %s:%d\r\n" +
                     "Connection: keep-alive\r\n" +
                     "Pragma: no-cache\r\n" +
@@ -32,6 +32,12 @@ class GreetingServerTest implements ServerTest {
                     "Accept-Encoding: gzip, deflate, sdch, br\r\n" +
                     "Accept-Language: ru,en;q=0.8\r\n" +
                     "X-Compress: null\r\n\r\n", HOST, PORT);
+    public static final String RESPONSE_HEADER = "HTTP/1.1 200 OK\r\n" +
+                    "Content-Type: text/html\r\n" +
+//                    "Content-Language: en, ru\r\n" +
+                    "Content-Length: %d\r\n" +
+                    "Connection: close\r\n\r\n%s";
+
 
     @Test
     void justServerTest() throws InterruptedException, UnknownHostException {
@@ -60,7 +66,7 @@ class GreetingServerTest implements ServerTest {
         val serverResponses = clientsPool.invokeAll(clientsJobs);
 
         for (val sr : serverResponses) {
-            assertThat(sr.get(), is(String.format(ConnectionProcessor.RESPONSE_HEADER, GreetingServer.GREET.length(), GreetingServer.GREET)));
+            assertThat(sr.get(), is(String.format(RESPONSE_HEADER, GreetingServer.GREET.length(), GreetingServer.GREET)));
         }
     }
 }

@@ -3,6 +3,7 @@ package http;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
@@ -15,12 +16,6 @@ import java.util.Map;
 @Log4j2
 public class GreetingServer extends ConnectionProcessor {
 
-//    public static final String RESPONSE_HEADER =
-//            "HTTP/1.1 200 OK\r\n" +
-//                    "Content-Type: text/html\r\n" +
-//                    "Content-Language: en, ru\r\n" +
-//                    "Content-Length: %d\r\n" +
-//                    "Connection: close\r\n\r\n%s";
     static final String GREET = "<html><head><meta charset=\"utf-8\"/></head><body><h1>Greetings! Приветствия!</h1></body></html>";
 
     public GreetingServer(Socket clientSocket) {
@@ -40,20 +35,13 @@ public class GreetingServer extends ConnectionProcessor {
         log.debug(() -> String.format("Connection %d: the server response has been constructed.", cpId));
 
         try {
+            byte[] greetBytes = GREET.getBytes(HTTP_CHARSET);
+            log.trace(() -> String.format("Connection %d: GREET contains %d bytes.", cpId, greetBytes.length));
             return Response.build("HTTP/1.1", "200 OK",
-                    headers, new ByteArrayInputStream(GREET.getBytes(HTTP_CHARSET)));
+                    headers, new ByteArrayInputStream(greetBytes));
         } catch (UnsupportedEncodingException e) {
             log.error(() -> String.format("Connection %d: the supplied encoding is not supported.", cpId));
         }
         return null;
     }
-
-//    @Override
-//    protected void send(Response response) {
-////        if (response == null) return;
-////        super.send(response);
-//        writer.print(String.format(RESPONSE_HEADER, GREET.length(), GREET));
-//        writer.flush();
-//        log.debug(() -> String.format("Connection %d: the server response has been sent.", cpId));
-//    }
 }
