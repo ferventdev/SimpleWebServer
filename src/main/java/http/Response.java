@@ -1,7 +1,12 @@
 package http;
 
+import lombok.extern.log4j.Log4j2;
+import lombok.val;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 /**
@@ -16,7 +21,11 @@ public interface Response {
     Map<String, String> getHeaders();
     InputStream getBody();
 
-    static Response from(String httpVersion, String status, Map<String, String> headers, InputStream body) {
+    default void send(OutputStream os) {
+
+    }
+
+    static Response build(String httpVersion, String status, Map<String, String> headers, InputStream body) {
         return new Response() {
             @Override
             public String getHttpVersion() {

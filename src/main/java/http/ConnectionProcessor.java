@@ -20,21 +20,12 @@ import java.util.concurrent.TimeUnit;
 @Log4j2
 public abstract class ConnectionProcessor implements Runnable {
 
-    public static final String RESPONSE_HEADER =
-                    "HTTP/1.1 200 OK\r\n" +
-                    "Content-Type: text/html\r\n" +
-//                    "Content-Language: en, ru\r\n" +
-                    "Content-Length: %d\r\n" +
-                    "Connection: close\r\n\r\n%s";
-
-    private static String HTTP_CHARSET = "utf-8"; //"8859_1";
+    protected static String HTTP_CHARSET = "utf-8";
     private static final int DEFAULT_HTTP_PORT = 80;
-//    private static final int SOCKET_READ_TIMEOUT = 200; // in milliseconds
     private static int count = 1;
 
     private final Socket clientSocket;
-//    protected BufferedReader reader;
-    protected PrintWriter writer;
+    protected OutputStream writer;
     protected final int cpId;
 
     public ConnectionProcessor(Socket clientSocket) {
@@ -45,9 +36,9 @@ public abstract class ConnectionProcessor implements Runnable {
 
     @Override
     public void run() {
-        try (val reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), HTTP_CHARSET)) ) {
+        try (val reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), HTTP_CHARSET))) {
 
-            writer = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(), HTTP_CHARSET), true);
+            writer = new BufferedOutputStream(clientSocket.getOutputStream());
 
             log.debug(() -> String.format("Connection %d: the server successfully connected to the client (both IO streams created).", cpId));
 
@@ -72,7 +63,36 @@ public abstract class ConnectionProcessor implements Runnable {
 
     protected abstract Response getResponse(Request request);
 
-    protected abstract void send(Response response);
+    protected void send(Response r) {
+        if (r == null) {
+            log.debug(() -> String.format("Connection %d: no need in a server response because the client request is null.", cpId));
+            return;
+        }
+
+        val header = new StringBuilder(r.getHttpVersion()).append(' ').append(r.getStatus()).append("\r\n");
+        for (val pair : r.getHeaders().entrySet())
+            header.append(pair.getKey()).append(": ").append(pair.getValue()).append("\r\n");
+        header.append("\r\n");
+
+        try {
+            writer.write(header.toString().getBytes(HTTP_CHARSET));
+            writer.flush();
+        } catch (IOException e) {
+            log.error(() -> String.format("Connection %d: an IO error occurred when sending the response from the server to the client.", cpId));
+        }
+        log.trace(() -> String.format("Connection %d: the server response header has been sent.", cpId));
+
+        if (r.getBody() != null) {
+            try (val body = new BufferedInputStream(r.getBody())) {
+                byte[] buffer = new byte[10 * 1024]; // 10 KB
+                for (int bytesRead = -1; (bytesRead = body.read(buffer)) != -1; ) writer.write(buffer, 0, bytesRead);
+            } catch (IOException e) {
+                log.error(() -> String.format("Connection %d: an IO error occurred when sending the response from the server to the client.", cpId));
+            }
+        }
+
+        log.debug(() -> String.format("Connection %d: the server response has been sent.", cpId));
+    }
 
     // This method is made static for the convenience of tests
     static Request getRequest(BufferedReader reader, int id) {
@@ -95,8 +115,8 @@ public abstract class ConnectionProcessor implements Runnable {
             }
 
             HttpMethod method = HttpMethod.valueOf(terms[0].toUpperCase());
-            if (method != HttpMethod.GET) {
-                log.debug(() -> String.format("Connection %d: currently only GET method is supported.", id));
+            if (method != HttpMethod.GET && method != HttpMethod.HEAD) {
+                log.debug(() -> String.format("Connection %d: currently only GET and HEAD methods are supported.", id));
                 return null;
             }
 
@@ -152,7 +172,8 @@ public abstract class ConnectionProcessor implements Runnable {
         for (String param : query.split("&")) {
             String[] pair = param.split("=", 2);
             if (pair.length > 1) params.put(pair[0], pair[1]);
-            else log.trace(() -> String.format("Connection %d: parameter '%s' has no value in the client request path query.", id, pair[0]));
+            else
+                log.trace(() -> String.format("Connection %d: parameter '%s' has no value in the client request path query.", id, pair[0]));
         }
         return params;
     }
@@ -164,7 +185,8 @@ public abstract class ConnectionProcessor implements Runnable {
             if (header.length > 1) {
                 headers.put(header[0], header[1]);
                 log.trace(() -> String.format("Connection %d: the header '%s' with value '%s' has been read.", id, header[0], header[1]));
-            } else log.debug(() -> String.format("Connection %d: header '%s' has no value in the client request.", id, header[0]));
+            } else
+                log.debug(() -> String.format("Connection %d: header '%s' has no value in the client request.", id, header[0]));
         }
         return headers;
     }
