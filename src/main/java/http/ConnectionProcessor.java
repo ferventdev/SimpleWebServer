@@ -105,6 +105,11 @@ public abstract class ConnectionProcessor implements Runnable {
         try {
             log.trace(() -> String.format("Connection %d: the client request parsing started.", id));
 
+            if (!reader.ready() ) {
+                log.debug(() -> String.format("Connection %d: the client request is empty.", id));
+                return null;
+            }
+
             String line = reader.readLine().trim();
 
             log.trace(() -> String.format("Connection %d: the first line of the client request has been read.", id));

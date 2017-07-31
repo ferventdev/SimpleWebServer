@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -21,6 +22,41 @@ public class FileServer extends ConnectionProcessor {
 
     private static final String baseDir = "src/main/resources/static/";
     static final String MESSAGE = "<html><head><meta charset=\"utf-8\"/></head><body><h1>404 - The requested file not found.</h1></body></html>";
+
+    static final Map<String, String> contents = new HashMap<>();
+
+    static {
+
+        contents.put("txt", "text/plain");
+        contents.put("rtf", "application/rtf");
+        contents.put("css", "text/css");
+        contents.put("htm", "text/html");
+        contents.put("html", "text/html");
+        contents.put("xhtml", "application/xhtml+xml");
+        contents.put("xht", "application/xhtml+xml");
+        contents.put("xml", "application/xml");
+        contents.put("md", "text/markdown");
+        contents.put("markdown", "text/markdown");
+        contents.put("php", "text/php");
+        contents.put("php3", "text/php");
+        contents.put("php4", "text/php");
+        contents.put("php5", "text/php");
+        contents.put("phps", "text/php");
+        contents.put("phtml", "text/php");
+
+        contents.put("js", "application/javascript");
+        contents.put("json", "application/json");
+        contents.put("pdf", "application/pdf");
+        contents.put("zip", "application/zip");
+        contents.put("gz", "application/gzip");
+
+        contents.put("gif", "image/gif");
+        contents.put("jpg", "image/jpeg");
+        contents.put("jpe", "image/jpeg");
+        contents.put("png", "image/png");
+        contents.put("tif", "image/tiff");
+        contents.put("tiff", "image/tiff");
+    }
 
 
     public FileServer(Socket clientSocket) {
@@ -39,8 +75,8 @@ public class FileServer extends ConnectionProcessor {
             Map<String, String> headers = new LinkedHashMap<>();
             Path filePath = Paths.get(baseDir, (req.getPath().equals("/")) ? "index.html" : req.getPath() );
 
-            headers.put("Date", ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
             headers.put("Server", "Simple Web Server");
+            headers.put("Date", ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
 
             if (!Files.isReadable(filePath) || !Files.isRegularFile(filePath)) {
                 log.debug(() -> String.format("Connection %d: file '%s' either doesn't exist or it can't be read (JVM has insufficient privileges).", cpId, filePath.toString()));
@@ -51,11 +87,16 @@ public class FileServer extends ConnectionProcessor {
                 bodyStream = new ByteArrayInputStream(bodyBytes);
             } else {
                 status = "200 OK";
-                headers.put("Content-Type", "text/html");
+                String[] terms = filePath.getFileName().toString().split("\\.");
+                String extension = null;
+                if (terms.length > 1 && contents.containsKey( (extension = terms[terms.length - 1]) ) ) {
+                    headers.put("Content-Type", contents.get(extension));
+                    log.debug(() -> String.format("Connection %d: 'Content-Type' is '%s'.", cpId, headers.get("Content-Type")) );
+                }
                 headers.put("Content-Length", Long.toString(Files.size(filePath)) );
                 headers.put("Content-Language", "en, ru");
                 headers.put("Last-Modified", Files.getLastModifiedTime(filePath).toString());
-                headers.put("Content-Encoding", "gzip");
+//                headers.put("Content-Encoding", "gzip");
                 bodyStream = new FileInputStream(filePath.toFile());
             }
 
