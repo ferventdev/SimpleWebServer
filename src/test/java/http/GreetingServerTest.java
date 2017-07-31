@@ -18,7 +18,7 @@ import static org.hamcrest.core.Is.is;
  * Created by Aleksandr Shevkunenko on 26.07.2017.
  */
 @Log4j2
-class GreetingServerTest implements ServerTest {
+class GreetingServerTest extends ServerTest {
 
     private static String simpleRequest = String.format("GET / HTTP/1.1\r\n" +
                     "Host: %s:%d\r\n" +
@@ -34,10 +34,14 @@ class GreetingServerTest implements ServerTest {
                     "X-Compress: null\r\n\r\n", HOST, PORT);
     public static final String RESPONSE_HEADER = "HTTP/1.1 200 OK\r\n" +
                     "Content-Type: text/html\r\n" +
-//                    "Content-Language: en, ru\r\n" +
                     "Content-Length: %d\r\n" +
                     "Connection: close\r\n\r\n%s";
 
+    @BeforeAll
+    static void setUp() {
+        serverThread = new Thread(() -> Server.main(Integer.toString(PORT), "GreetingServer"), "server");
+        serverThread.start();
+    }
 
     @Test
     void justServerTest() throws InterruptedException, UnknownHostException {

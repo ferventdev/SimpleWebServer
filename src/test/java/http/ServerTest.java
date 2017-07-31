@@ -2,6 +2,7 @@ package http;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,18 +11,13 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Aleksandr Shevkunenko on 28.07.2017.
  */
-public interface ServerTest {
-    int PORT = 1234;
-    String HOST = "localhost";
-    int POOL_SIZE = 10;
+public abstract class ServerTest {
+    static protected final int PORT = 1234;
+    static protected final String HOST = "localhost";
+    static protected final int POOL_SIZE = 10;
 
-    Thread serverThread = new Thread(() -> Server.main(Integer.toString(PORT)), "server");;
-    ExecutorService clientsPool = Executors.newFixedThreadPool(POOL_SIZE); ;
-
-    @BeforeAll
-    static void setUp() {
-        serverThread.start();
-    }
+    static protected final ExecutorService clientsPool = Executors.newFixedThreadPool(POOL_SIZE);
+    static protected Thread serverThread;
 
     @AfterAll
     static void tearDown() throws InterruptedException {

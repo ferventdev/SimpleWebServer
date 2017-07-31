@@ -5,6 +5,7 @@ import lombok.val;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -50,7 +51,11 @@ public class Server {
             while(!timeout && !interrupted)
                 try {
 
-                    ConnectionProcessor cp = new GreetingServer(ss.accept());
+                    Socket clientSocket = ss.accept();
+                    ConnectionProcessor cp =
+                            (args.length > 1 && args[1].equalsIgnoreCase("GreetingServer")) ?
+                                    new GreetingServer(clientSocket) :
+                                    new FileServer(clientSocket);
                     executor.execute(cp);
 
                 } catch (SocketTimeoutException e) {

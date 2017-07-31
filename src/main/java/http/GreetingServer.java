@@ -23,9 +23,9 @@ public class GreetingServer extends ConnectionProcessor {
     }
 
     @Override
-    protected Response getResponse(Request request) {
-        if (request == null) return null;
-        log.info(() -> String.format("Connection %d: the client request (received by the server) is the following:%n%n%s", cpId, request.toString()));
+    protected Response getResponse(Request req) {
+        if (req == null) return null;
+        log.info(() -> String.format("Connection %d: the client request (received by the server) is the following:%n%n%s", cpId, req.toString()));
 
         Map<String, String> headers = new LinkedHashMap<>();
         headers.put("Content-Type", "text/html");
@@ -35,10 +35,13 @@ public class GreetingServer extends ConnectionProcessor {
         log.debug(() -> String.format("Connection %d: the server response has been constructed.", cpId));
 
         try {
+
             byte[] greetBytes = GREET.getBytes(HTTP_CHARSET);
             log.trace(() -> String.format("Connection %d: GREET contains %d bytes.", cpId, greetBytes.length));
-            return Response.build("HTTP/1.1", "200 OK",
-                    headers, new ByteArrayInputStream(greetBytes));
+
+            return Response.build("HTTP/1.1", "200 OK", headers,
+                    (req.getMethod() == Request.HttpMethod.HEAD) ? null : new ByteArrayInputStream(greetBytes));
+
         } catch (UnsupportedEncodingException e) {
             log.error(() -> String.format("Connection %d: the supplied encoding is not supported.", cpId));
         }
