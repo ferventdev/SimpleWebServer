@@ -9,12 +9,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by Aleksandr Shevkunenko on 28.07.2017.
+ * This abstract class is used in tests. It holds some basic parameters fields.
  */
 public abstract class ServerTest {
     static protected final int PORT = 1234;
     static protected final String HOST = "localhost";
-    static protected final int POOL_SIZE = 10;
+    static protected final int POOL_SIZE = 8;
 
     static protected final ExecutorService clientsPool = Executors.newFixedThreadPool(POOL_SIZE);
     static protected Thread serverThread;

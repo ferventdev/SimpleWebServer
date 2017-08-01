@@ -1,20 +1,13 @@
 package http;
 
-import lombok.extern.log4j.Log4j2;
-import lombok.val;
-
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 /**
- * Created by Aleksandr Shevkunenko on 26.07.2017.
+ * This interface is used to build a server response object and then to refer the data in it if necessary
+ * (for example, when sending out this response).
  */
 public interface Response {
-
-//    enum Status { OK }
 
     String getHttpVersion();
     String getStatus();

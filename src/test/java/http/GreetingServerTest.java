@@ -15,7 +15,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
 /**
- * Created by Aleksandr Shevkunenko on 26.07.2017.
+ * This class is responsible for server testing in a greeting mode.
  */
 @Log4j2
 class GreetingServerTest extends ServerTest {

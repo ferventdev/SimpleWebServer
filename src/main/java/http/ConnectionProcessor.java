@@ -1,22 +1,22 @@
 package http;
 
 import http.Request.HttpMethod;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by Aleksandr Shevkunenko on 25.07.2017.
+ * This class is responsible for a client request processing.
+ * Its instance is started as a task in the server thread pool each time when the server accepts the connection request.
+ * This class is made abstract, so that the abstract getResponse() method might be overriden in a subclasses
+ * (GreetingServer and FileServer).
  */
 @Log4j2
 public abstract class ConnectionProcessor implements Runnable {
@@ -55,9 +55,6 @@ public abstract class ConnectionProcessor implements Runnable {
             try {
                 if (writer != null) writer.close();
             } catch (Throwable t) { /* do nothing*/ }
-//            try {
-//                if (reader != null) reader.close();
-//            } catch (Throwable t) { /* do nothing*/ }
             log.debug(() -> String.format("Connection %d has been closed (both IO streams closed).", cpId));
         }
     }
@@ -105,9 +102,13 @@ public abstract class ConnectionProcessor implements Runnable {
         try {
             log.trace(() -> String.format("Connection %d: the client request parsing started.", id));
 
-            if (!reader.ready() ) {
-                log.debug(() -> String.format("Connection %d: the client request is empty.", id));
-                return null;
+            for (int i = 0; !reader.ready(); i++) {
+                if (i > 30) {       // totally, it's 6 seconds (30 * 200 ms) timeout
+                    log.debug(() -> String.format("Connection %d: the client request isn't ready to be read for too long.", id));
+                    return null;
+                }
+                log.trace(() -> String.format("Connection %d: the client request isn't ready to be read yet.", id));
+                TimeUnit.MILLISECONDS.sleep(200);
             }
 
             String line = reader.readLine().trim();
@@ -169,6 +170,9 @@ public abstract class ConnectionProcessor implements Runnable {
             log.debug(() -> String.format("Connection %d: the client request has been successfully parsed.", id));
             return Request.build(method, url.getPath(), httpVersion, params, url.getHost(), url.getPort(), headers, body.toString());
 
+        } catch (InterruptedException e) {
+            log.error(() -> String.format("Connection %d: the expecting of a client request was interrupted.", id));
+            return null;
         } catch (IllegalArgumentException e) {
             log.error(() -> String.format("Connection %d: method in the client request doesn't exist in the HTTP specification.", id));
             return null;

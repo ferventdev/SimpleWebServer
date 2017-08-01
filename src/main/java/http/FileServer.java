@@ -7,7 +7,6 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -15,7 +14,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Created by Aleksandr Shevkunenko on 28.07.2017.
+ * This class implements a simple file server.
+ * It allows to download static files (html, text, pics, scripts, etc.).
  */
 @Log4j2
 public class FileServer extends ConnectionProcessor {
@@ -96,7 +96,6 @@ public class FileServer extends ConnectionProcessor {
                 headers.put("Content-Length", Long.toString(Files.size(filePath)) );
                 headers.put("Content-Language", "en, ru");
                 headers.put("Last-Modified", Files.getLastModifiedTime(filePath).toString());
-//                headers.put("Content-Encoding", "gzip");
                 bodyStream = new FileInputStream(filePath.toFile());
             }
 

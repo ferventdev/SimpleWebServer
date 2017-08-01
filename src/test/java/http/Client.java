@@ -7,16 +7,17 @@ import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Created by Aleksandr Shevkunenko on 25.07.2017.
+ * This class allows to test the server in the greeting mode.
+ * Test can start many Client instances, because they are Callables,
+ * thus simultaneous requests can be simulated.
  */
 @Log4j2
 public class Client implements Callable<String> {
 
-    private static String HTTP_CHARSET = "utf-8"; //"8859_1";
+    private static String HTTP_CHARSET = "utf-8";
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 8080;
     private static int count = 1;
@@ -60,12 +61,8 @@ public class Client implements Callable<String> {
             log.debug(() -> String.format("Client %d has sent a request to the server and now is waiting for a response.", id));
 
             response = reader.lines().collect(Collectors.joining("\r\n"));
-//                val resp = new StringBuilder();
-//                for (String s = null; reader.ready() && (s = reader.readLine()) != null; ) {
-//                    resp.append(s).append("\r\n");
-//                }
 
-            String finalResponse = response; //resp.toString();
+            String finalResponse = response;
             log.info(() -> String.format("Client %d has got a response from the server:%n%n%s%n", id, finalResponse));
 
             log.debug(() -> String.format("Client %d completed his work.", id));

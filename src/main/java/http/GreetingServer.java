@@ -11,7 +11,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Created by Aleksandr Shevkunenko on 26.07.2017.
+ * This class implements a simple greeting server. Its primary use is the server testing.
+ * It responses with a short html-phrase to any client GET-method HTTP request.
  */
 @Log4j2
 public class GreetingServer extends ConnectionProcessor {
@@ -24,7 +25,7 @@ public class GreetingServer extends ConnectionProcessor {
 
     @Override
     protected Response getResponse(Request req) {
-        if (req == null) return null;
+        if (req == null) return null;   // there would be null if the request HTTP methods were different from GET and HEAD
         log.info(() -> String.format("Connection %d: the client request (received by the server) is the following:%n%n%s", cpId, req.toString()));
 
         Map<String, String> headers = new LinkedHashMap<>();

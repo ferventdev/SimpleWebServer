@@ -5,11 +5,12 @@ import lombok.val;
 import java.util.Map;
 
 /**
- * Created by Aleksandr Shevkunenko on 25.07.2017.
+ * This interface is used to build a client request object, which will store the request data, so that this data
+ * can then be claimed during server response construction.
  */
 public interface Request {
 
-    // all HTTP methods are enumerated, but actually only GET method is supported
+    // all HTTP methods are enumerated, but actually only GET and HEAD methods are supported
     static enum HttpMethod { GET, HEAD, POST, PUT, PATCH, DELETE, TRACE, CONNECT, OPTIONS }
 
     HttpMethod getMethod();
